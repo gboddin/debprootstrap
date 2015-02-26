@@ -4,3 +4,4 @@ build
 build.tar.gz
 proot-*
 *.bundle
+config.cfg

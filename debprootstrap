@@ -1,14 +1,14 @@
 #!/bin/bash
-
 #build a userland/debian from root/whatever, enjoy, you need sudo
 
 #go where I should be, just to make sure
 
 UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
 DEBIAN_MIRROR=http://http.debian.net/debian
-
+[ -x config.cfg ] && . config.cfg
 MY_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${MY_DIR}
+echo DebProotstrap $(cat version) 
 
 [ -z "$1" ] && echo "First required argument is target architecture (amd64,i386,armhf)" && exit 1
 [ -z "$2" ] && echo "Second required argument is debian/ubuntu version to download (stable,testing,wheezy,jessie,karmic,intrepid,lucid,trusty ...)" && exit 1
