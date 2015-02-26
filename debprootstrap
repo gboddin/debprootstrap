@@ -87,4 +87,5 @@ FINAL_NAME=build-$2-$1-$(date +%Y%m%d%H%M).bundle
 cat lib/install-header.sh > $FINAL_NAME
 tar cz build --exclude='dev' --exclude='proc' --exclude='sys'|base64 >> $FINAL_NAME
 cat lib/install-footer.sh >> $FINAL_NAME
+chmod +x $FINAL_NAME
 echo Bundle is ready, use \"./$FINAL_NAME \<DIR\>\" to install your build in \<DIR\>
