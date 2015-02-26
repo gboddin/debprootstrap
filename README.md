@@ -3,6 +3,10 @@ Why
 
 Sometimes you can't run as root and apt-get inside a container could make things easier when running a good old RHEL6 ... 
 
+Supported container
+-------------------
+debian : wheezy, jessie, sid
+ubuntu : vivid, utopic, trusty, precise, lucid
 
 How to use 
 ----------
