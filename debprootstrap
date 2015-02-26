@@ -6,7 +6,7 @@
 
 UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
 DEBIAN_MIRROR=http://http.debian.net/debian
-
+[ -x config.cfg ] && . config.cfg
 MY_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${MY_DIR}
 

@@ -1,0 +1,8 @@
+# specify your mirror here
+DEBIAN_MIRROR=http://http.debian.net/debian
+UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
+# OR with apt-cacher-ng installed on builder
+# to speedup next builds by caching downloaded package
+# sudo apt-get install apt-cacher-ng -y
+#DEBIAN_MIRROR=http://localhost:3142/http.debian.net/debian
+#DEBIAN_MIRROR=http://localhost:3142/archive.ubuntu.com/ubuntu
