@@ -8,19 +8,25 @@ How to use
 
 On a machine you have root access to, the script use sudo) :
 ```
+#building part
 git clone https://github.com/gboddin/debprootstrap.git 
 cd debprootstrap
-./debprootstrap
+./debprootstrap <target_arch> <suite>
 ```
 
-And you end-up with a *build.tar.gz* , now send this build.tar.gz to any linux machine and :
+Suites are suites (wheezy,jessie,sid,testing,stable,lucid) supported by cdebootstrap in its debian state ;)
+
+Check https://packages.debian.org/jessie/amd64/cdebootstrap-static/filelist -> /usr/share/cdebootstrap-static/suites
+
+And you end-up with a *installer-suite-<date>.sh* , now send this to any linux machine and :
 
 ```
-tar -xzvf build.tar.gz
-build/start-container.sh
+#running part
+./installer-jessie-amd64-201502260200.bundle ~/my-debian-jessie
+~/my-debian-jessie/start-container
 ```
 
-Tadaaaa you're pseudo root and can use the package manager to install your favorite services \o/
+Tadaaaa you're pseudo root and can use the package manager to install your favorite services/packages \o/
 
 Remarks
 -------

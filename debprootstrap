@@ -2,40 +2,89 @@
 
 #build a userland/debian from root/whatever, enjoy, you need sudo
 
+#go where I should be, just to make sure
 
-#go where I should be ...
 MY_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $MY_DIR
 
+
+
+[ -z "$1" ] && echo First required argument is target architecture \(amd64,i386,armhf\) && exit 1
+[ -z "$2" ] && echo Second required argument is debian/ubuntu version to download \(stable,testing,wheezy,jessie,karmic,intrepid,lucid, ...\) && exit 1
+
+# Oh come on, that code below is stupid ... make your mind about arch nomenclature, people
+if (uname -m|grep -q 64); then
+	HOST_ARCH_PROOT=x86_64 
+	HOST_ARCH_DEB=amd64
+elif (uname -m|grep -qi arm); then
+	HOST_ARCH_PROOT=arm
+	HOST_ARCH_DEB=armhf
+elif (uname -m|grep i686); then
+	HOST_ARCH_PROOT=x86
+	HOST_ARCH_DEB=i386
+fi
+[ "$1" = "amd64" ]&&TARGET_ARCH_PROOT=x86_64
+[ "$1" = "i386" ]&&TARGET_ARCH_PROOT=x86
+[ "$1" = "armhf" ]&&TARGET_ARCH_PROOT=arm
+[ -z ${TARGET_ARCH_PROOT} ]&&echo Cannot build for arch $1&&exit 1
+
+echo Detected host arch $HOST_ARCH_DEB \($HOST_ARCH_PROOT\)
+echo Build for arch $1
+
 #setup dir :
-[ -d build ]||mkdir -p build/debootstrap 
+[ -d build ]&&rm -Rf build 
 [ -d debootstrap ]&&rm -Rf debootstrap
 mkdir debootstrap
-
+mkdir -p build/debootstrap
 # a few binary deps
 
-STATIC_PROOT=http://static.proot.me/proot-x86_64
+STATIC_PROOT=http://static.proot.me/proot-${HOST_ARCH_PROOT}
 
 # sorry, mirror.as35701. you're providing an easy way to get the latest package :')
-
-STATIC_CDEBOOTSTRAP_PACKAGE=http://http.debian.net/debian/pool/main/c/cdebootstrap/$(wget "http://mirror.as35701.net/debian/pool/main/c/cdebootstrap/?C=M;O=D" -qO -|grep amd64|grep static|head -1|cut -d\" -f8)
-
-
+STATIC_CDEBOOTSTRAP_PACKAGE=http://http.debian.net/debian/pool/main/c/cdebootstrap/$(wget "http://mirror.as35701.net/debian/pool/main/c/cdebootstrap/?C=M;O=D" -qO -|grep ${HOST_ARCH_DEB}|grep static|head -1|cut -d\" -f8)
 echo Getting static debootstrap $STATIC_CDEBOOTSTRAP_PACKAGE ...
 wget $STATIC_CDEBOOTSTRAP_PACKAGE -q -O debootstrap/debootstrap.deb
 echo Extracting static deboostrap from deb package ...
+# get the name of the package in the package (the only tar.gz package)
 CDB_STATIC_TAR=$(ar p debootstrap/debootstrap.deb data.tar.xz|tar JxvC debootstrap|grep "tar.gz$")
-tar -xzf debootstrap/${CDB_STATIC_TAR} -C build/debootstrap 
-[ -f proot-amd64 ]||(echo Getting static proot $STATIC_PROOT ...&&wget $STATIC_PROOT -qO proot-amd64)
-[ -x proot-amd64 ]||chmod +x proot-amd64
-# TODO cdebootstrap still requires root for unshare ... to investigate
-echo And bootstrapping debian to build folder ...
-sudo build/debootstrap/cdebootstrap --flavour=minimal jessie build http://http.debian.net/debian
-echo Resetting uid to building user ...
-sudo chown --reference=${HOME} build -R
-echo Installing start scripts into container ...
-cp proot-amd64 build/proot
-cp lib/*sh build
-echo Build is ready, creating rootfs tar ...
-tar cz build > build.tar.gz
 
+# now, extracting the package from the package from the package, OK ? :) 
+# (static version of debootstrap with support files for various debian/unbutu versions)
+tar -xzf debootstrap/${CDB_STATIC_TAR} -C build/debootstrap 
+# now check if we have the requested suite available
+if ! cat debootstrap/usr/share/cdebootstrap-static/suites|grep Suite|cut -d\: -f2|sort|grep -q "$2" ; then
+	echo Suite $2 not found, available suites are :
+	cat debootstrap/usr/share/cdebootstrap-static/suites|grep Suite|cut -d\: -f2|sort
+	exit 1
+fi
+
+[ -f proot-${HOST_ARCH_PROOT} ]||(echo Getting static proot $STATIC_PROOT ...&&wget $STATIC_PROOT -qO proot-${HOST_ARCH_PROOT})
+[ -x proot-${HOST_ARCH_PROOT} ]||chmod +x proot-${HOST_ARCH_PROOT}
+
+
+
+# TODO cdebootstrap still requires root because proot can't handle the unshare call ... to investigate
+# NOTE : that's why host arch proot (the 3 lines above) is left here actually, target : get rid of that last sudo, even for the builder 
+
+if cat debootstrap/usr/share/cdebootstrap-static/suites|grep "Suite.*$2" -A3|grep Keyring|grep -v ubuntu; then
+	echo And bootstrapping debian to build folder ...
+	sudo build/debootstrap/cdebootstrap --flavour=minimal $2 build http://http.debian.net/debian
+else
+	echo And bootstrapping ubuntu to build folder ...
+	wget "http://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg" -qO build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg
+	sudo build/debootstrap/cdebootstrap --flavour=minimal -k build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg -c build/debootstrap/cdebootstrap-support/generic-ubuntu $2 build http://archive.ubuntu.com/ubuntu/ 
+fi
+# till we can use proot to cdebootstrap we need to reset rootfs to the current uid/gid
+echo Resetting uid/gid to building user ...
+sudo chown --reference=${HOME} build -R
+
+echo Installing proot and start scripts into container ...
+wget http://static.proot.me/proot-${TARGET_ARCH_PROOT} -qO build/proot
+chmod +x build/proot
+cp lib/start-container build
+echo Build is ready, creating rootfs installer ...
+FINAL_NAME=build-$2-$1-$(date +%Y%m%d%H%M).bundle
+cat lib/install-header.sh > $FINAL_NAME
+tar cz build --exclude='dev' --exclude='proc' --exclude='sys'|base64 >> $FINAL_NAME
+cat lib/install-footer.sh >> $FINAL_NAME
+echo Bundle is ready, use \"./$FINAL_NAME \<DIR\>\" to install your build in \<DIR\>
