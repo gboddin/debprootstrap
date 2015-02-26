@@ -3,3 +3,4 @@ debootstrap
 build
 build.tar.gz
 proot-*
+*.bundle
