@@ -67,12 +67,25 @@ fi
 # NOTE : that's why host arch proot (the 3 lines above) is left here actually, target : get rid of that last sudo, even for the builder 
 
 if cat debootstrap/usr/share/cdebootstrap-static/suites|grep "Suite.*$2" -A3|grep Keyring|grep -v ubuntu; then
+	echo Adding debian keyring ...
+	DEBIAN_KEYRING_PACKAGE=http://http.debian.net/debian/pool/main/d/debian-archive-keyring/$(wget "http://mirror.as35701.net/debian/pool/main/d/debian-archive-keyring/?C=M;O=D" -qO -|grep _all\.deb|head -1|cut -d\" -f8)
+	wget "$DEBIAN_KEYRING_PACKAGE" -qO debootstrap/debian-keyring.deb
+	DEBIAN_KEYRING_PACKAGE_DATA=$(ar t debootstrap/debian-keyring.deb |grep data.tar)
+	KEYRING_FILE=$(ar p debootstrap/debian-keyring.deb $DEBIAN_KEYRING_PACKAGE_DATA|tar zxvC debootstrap|grep "debian-archive-keyring.gpg$")
+	cp debootstrap/$KEYRING_FILE build/debootstrap/cdebootstrap-support/
 	echo And bootstrapping debian to build folder ...
-	sudo build/debootstrap/cdebootstrap --flavour=minimal $2 build http://http.debian.net/debian
+	sudo build/debootstrap/cdebootstrap --flavour=minimal \
+	  -k build/debootstrap/cdebootstrap-support/debian-archive-keyring.gpg \
+	  -c build/debootstrap/cdebootstrap-support/generic \
+	  $2 build http://http.debian.net/debian
 else
-	echo And bootstrapping ubuntu to build folder ...
+    echo Getting ubuntu keyring ...
 	wget "http://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg" -qO build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg
-	sudo build/debootstrap/cdebootstrap --flavour=minimal -k build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg -c build/debootstrap/cdebootstrap-support/generic-ubuntu $2 build http://archive.ubuntu.com/ubuntu/ 
+	echo And bootstrapping ubuntu to build folder ...
+	sudo build/debootstrap/cdebootstrap --flavour=minimal \
+	  -k build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg \
+	  -c build/debootstrap/cdebootstrap-support/generic-ubuntu \
+	  $2 build http://archive.ubuntu.com/ubuntu
 fi
 # till we can use proot to cdebootstrap we need to reset rootfs to the current uid/gid
 echo Resetting uid/gid to building user ...
