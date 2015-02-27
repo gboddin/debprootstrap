@@ -74,7 +74,7 @@ else
 	[ "${TARGET_ARCH_PROOT}" = "arm" ] && echo "Ubuntu not available on ARM" && exit 1
 	[ "${2}" = "lucid" ] && echo "Lucid is currently broken and phasing out, not plan for support sorry." && exit 1
 fi
-
+DISTRO_SUITE=$2
 FINAL_NAME=install-${DISTRO}-$2-$1-$(date +%Y%m%d%H%M).bundle
 
 if [ "${DISTRO}" = "debian" ]; then
