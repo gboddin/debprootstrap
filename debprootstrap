@@ -74,7 +74,7 @@ else
 	[ "${TARGET_ARCH_PROOT}" = "arm" ] && echo "Ubuntu not available on ARM" && exit 1
 	[ "${2}" = "lucid" ] && echo "Lucid is currently broken and phasing out, not plan for support sorry." && exit 1
 fi
-
+DISTRO_SUITE=$2
 FINAL_NAME=install-${DISTRO}-$2-$1-$(date +%Y%m%d%H%M).bundle
 
 if [ "${DISTRO}" = "debian" ]; then
@@ -114,6 +114,7 @@ echo "Installing proot and start scripts into container ..."
 wget "http://static.proot.me/proot-${TARGET_ARCH_PROOT}" -qO build/proot
 chmod +x build/proot
 cp lib/start-container build
+[ -x post-build.sh ] && . ./post-build.sh
 echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}
 tar cz build --exclude='dev' --exclude='proc' --exclude='sys'|base64 >> ${FINAL_NAME}
