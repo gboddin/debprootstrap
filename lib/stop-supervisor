@@ -1,0 +1,9 @@
+#!/bin/bash
+CONTAINER_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd ${CONTAINER_PATH}
+if [ -f run/supervisord.pid ] && ps aux|grep supervisord|grep -q $(cat run/supervisord.pid); then
+	echo "Killing supervisord ..."
+	kill $(cat run/supervisord.pid)
+else
+	echo "Not running ..."
+fi
