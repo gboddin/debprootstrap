@@ -1,15 +1,22 @@
 Why
 ---
+Debprootstrap allow the creation of debian/ubuntu container installers for most (any?) linux distributions including tar,gzip and base64  (RHEL,Arch,Debian,Slackware,...)
 
-Sometimes you can't run as root and apt-get inside a container could make things easier when running a good old RHEL6 ... 
+You can run those container as a regular user and install that cutting-edge software from debian-sid you always wanted in your home folder.
+
+DepProotstrap heavily relies on proot (http://proot.me) to achieve chroot/bind/syscall-intercept (well proot) at the user level.
+
+Prebuilt container
+------------------
+You can download prebuilt containers at http://debproot.siwhine.net/bundles/
 
 Supported container
 -------------------
-debian : wheezy, jessie, sid
-ubuntu : vivid, utopic, trusty, precise, lucid
+- debian : wheezy, jessie, sid
+- ubuntu : vivid, utopic, trusty, precise
 
-How to use 
-----------
+How to build a container installer
+----------------------------------
 
 On a machine you have root access to, the script uses sudo :
 ```
@@ -69,7 +76,7 @@ Tadaaaa you're pseudo root and can use the package manager to install your favor
 
 Remarks
 -------
-Suites are suites (wheezy,jessie,sid,testing,stable,lucid) supported by cdebootstrap in its debian state ;)
+Suites are suites (wheezy,jessie,sid,testing,stable,precise,trusty) supported by cdebootstrap in its debian state ;)
 
 Check https://packages.debian.org/jessie/amd64/cdebootstrap-static/filelist -> /usr/share/cdebootstrap-static/suites
 
