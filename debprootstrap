@@ -101,7 +101,7 @@ echo "Building a new ${FINAL_NAME} container installer ... "
 # TODO cdebootstrap still requires root because proot can't handle the unshare call ... to investigate
 # NOTE : that's why host arch proot is left here actually, target : get rid of that last sudo, even for the builder
 
-sudo build/debootstrap/cdebootstrap --arch=$1 --flavour=minimal \
+sudo build/debootstrap/cdebootstrap --include=initscripts --arch=$1 --flavour=minimal \
   -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
   -c lib/config-${DISTRO} \
   $2 build ${DISTRO_MIRROR}
