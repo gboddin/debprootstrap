@@ -29,6 +29,11 @@ fi
 [ "$1" = "armhf" ] && TARGET_ARCH_PROOT=arm
 [ -z ${TARGET_ARCH_PROOT} ] && echo "Cannot build for arch $1" && exit 1
 
+STATIC_PROOT=http://static.proot.me/proot-${HOST_ARCH_PROOT}
+[ -f proot-${HOST_ARCH_PROOT} ]||(echo Getting static proot ${STATIC_PROOT} ...&&wget "${STATIC_PROOT}" -qO proot-${HOST_ARCH_PROOT})
+[ -x proot-${HOST_ARCH_PROOT} ]||chmod +x proot-${HOST_ARCH_PROOT}
+
+
 echo "Detected host arch ${HOST_ARCH_DEB} (proot-${HOST_ARCH_PROOT})"
 echo "Building for arch $1 (proot-${TARGET_ARCH_PROOT})"
 
@@ -37,10 +42,6 @@ echo "Building for arch $1 (proot-${TARGET_ARCH_PROOT})"
 [ -d debootstrap ] && rm -Rf debootstrap
 mkdir debootstrap
 mkdir -p build/debootstrap
-
-# a few binary deps
-
-STATIC_PROOT=http://static.proot.me/proot-${HOST_ARCH_PROOT}
 
 # If not ARM get ubuntu cdebootstrap (so we can build ubuntu bootstrap otherwise go debian)
 [ "${HOST_ARCH_DEB}" = "armhf" ]|| \
@@ -64,46 +65,46 @@ if ! cat build/debootstrap/cdebootstrap-support/suites|grep Suite|cut -d\: -f2|s
 	exit 1
 fi
 
-[ -f proot-${HOST_ARCH_PROOT} ]||(echo Getting static proot ${STATIC_PROOT} ...&&wget "${STATIC_PROOT}" -qO proot-${HOST_ARCH_PROOT})
-[ -x proot-${HOST_ARCH_PROOT} ]||chmod +x proot-${HOST_ARCH_PROOT}
 
-
-
-# TODO cdebootstrap still requires root because proot can't handle the unshare call ... to investigate
-# NOTE : that's why host arch proot (the 3 lines above) is left here actually, target : get rid of that last sudo, even for the builder 
 
 if cat build/debootstrap/cdebootstrap-support/suites|grep "Suite.*$2" -A3|grep Keyring|grep -qv ubuntu; then
-	echo Adding debian keyring ...
+	DISTRO=debian
+else
+	DISTRO=ubuntu
+	[ "${TARGET_ARCH_PROOT}" = "arm" ] && echo "Ubuntu not available on ARM" && exit 1
+	[ "${2}" = "lucid" ] && echo "Lucid is currently broken and phasing out, not plan for support sorry." && exit 1
+fi
+
+FINAL_NAME=install-${DISTRO}-$2-$1-$(date +%Y%m%d%H%M).bundle
+
+if [ "${DISTRO}" = "debian" ]; then
+	echo Adding debian keyring from keyring package ...
 	DEBIAN_KEYRING_PACKAGE=http://http.debian.net/debian/pool/main/d/debian-archive-keyring/$(wget "http://mirror.as35701.net/debian/pool/main/d/debian-archive-keyring/?C=M;O=D" -qO -|grep _all\.deb|head -1|cut -d\" -f8)
 	wget "$DEBIAN_KEYRING_PACKAGE" -qO debootstrap/debian-keyring.deb
 	DEBIAN_KEYRING_PACKAGE_DATA=$(ar t debootstrap/debian-keyring.deb |grep data.tar)
 	KEYRING_FILE=$(ar p debootstrap/debian-keyring.deb ${DEBIAN_KEYRING_PACKAGE_DATA}|tar zxvC debootstrap|grep "debian-archive-keyring.gpg$")
-	cp debootstrap/${KEYRING_FILE} build/debootstrap/cdebootstrap-support/
-	echo And bootstrapping debian to build folder ...
-	sudo build/debootstrap/cdebootstrap --flavour=minimal \
-	  -k build/debootstrap/cdebootstrap-support/debian-archive-keyring.gpg \
-	  -c lib/config-debian \
-	  $2 build ${DEBIAN_MIRROR}
+	cp debootstrap/${KEYRING_FILE} build/debootstrap/cdebootstrap-support/debian-archive-keyring.gpg
+	DISTRO_MIRROR=${DEBIAN_MIRROR}
 else
-    #due to a dpkg/cdebootstrap bug, ubuntu is bootstrapped in 2 stages :
-    # see https://bugs.launchpad.net/ubuntu/+source/dpkg/+bug/1376590
-    # also they hate cdebootstrap it looks ... even apt source file installation fails ...
     echo Getting ubuntu keyring ...
-	wget "http://archive.ubuntu.com/ubuntu/./project/ubuntu-archive-keyring.gpg" -qO build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg
-	echo "And bootstrapping ubuntu (stage 1) to build folder ..."
-	sudo build/debootstrap/cdebootstrap --foreign --flavour=minimal \
-	  -k build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg \
-      -c lib/config-ubuntu  \
-	  $2 build ${UBUNTU_MIRROR}
-    sudo ln -sf mawk build/usr/bin/awk
-    #fixing another bug from ubuntu VS cdebootstrap (base-file already did some job on stage 1 and tries again on stage 2):
-    [ -d build/var/run ] && rm -Rf build/var/run 
-    echo "And bootstrapping ubuntu (stage 2) to build folder ..."
-    sudo build/debootstrap/cdebootstrap --flavour=minimal \
-	  -k build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg \
-	  -c lib/config-ubuntu \
-	  $2 build ${UBUNTU_MIRROR}
+    #due to a dpkg/cdebootstrap bug, ubuntu is bootstrapped in 2 stages :
+    # also they hate cdebootstrap it looks ... even apt source file installation fails ...
+    wget "http://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg" -qO build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg
+    #cheating , see https://bugs.launchpad.net/ubuntu/+source/dpkg/+bug/1376590
+    mkdir -p build/usr/bin
+    ln -sf mawk build/usr/bin/awk
+    DISTRO_MIRROR=${UBUNTU_MIRROR}
 fi
+
+echo "Building a new ${FINAL_NAME} container installer ... "
+
+# TODO cdebootstrap still requires root because proot can't handle the unshare call ... to investigate
+# NOTE : that's why host arch proot is left here actually, target : get rid of that last sudo, even for the builder
+
+sudo build/debootstrap/cdebootstrap --arch=$1 --flavour=minimal \
+  -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
+  -c lib/config-${DISTRO} \
+  $2 build ${DISTRO_MIRROR}
 
 # till we can use proot to cdebootstrap we need to reset rootfs to the current uid/gid
 echo "Resetting uid/gid to building user ..."
@@ -113,8 +114,7 @@ echo "Installing proot and start scripts into container ..."
 wget "http://static.proot.me/proot-${TARGET_ARCH_PROOT}" -qO build/proot
 chmod +x build/proot
 cp lib/start-container build
-echo Build is ready, creating rootfs installer ...
-FINAL_NAME=build-$2-$1-$(date +%Y%m%d%H%M).bundle
+echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}
 tar cz build --exclude='dev' --exclude='proc' --exclude='sys'|base64 >> ${FINAL_NAME}
 cat lib/install-footer.sh >> ${FINAL_NAME}

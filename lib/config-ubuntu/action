@@ -11,6 +11,10 @@ Action: dpkg-install
 Flags: force, only
 What: base-passwd
 
+Action: dpkg-install
+Flags: force, only
+What: base-files
+
 Action: helper-install
 What: cdebootstrap-helper-rc.d
 

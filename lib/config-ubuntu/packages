@@ -12,4 +12,4 @@ Section: standard
 Packages:
  priority-required
  priority-important
-
+ -makedev
