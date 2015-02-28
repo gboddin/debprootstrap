@@ -8,30 +8,30 @@ DEBIAN_MIRROR=http://http.debian.net/debian
 [ -x config.cfg ] && . config.cfg
 MY_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${MY_DIR}
+
 echo DebProotstrap $(cat version) 
 
 [ -z "$1" ] && echo "First required argument is target architecture (amd64,i386,armhf)" && exit 1
 [ -z "$2" ] && echo "Second required argument is debian/ubuntu version to download (stable,testing,wheezy,jessie,karmic,intrepid,lucid,trusty ...)" && exit 1
 
 # Oh come on, that code below is stupid ... make your mind about arch nomenclature, people
-if (uname -m|grep -q 64); then
-	HOST_ARCH_PROOT=x86_64 
-	HOST_ARCH_DEB=amd64
-elif (uname -m|grep -qi arm); then
-	HOST_ARCH_PROOT=arm
-	HOST_ARCH_DEB=armhf
-elif (uname -m|grep i686); then
-	HOST_ARCH_PROOT=x86
-	HOST_ARCH_DEB=i386
-fi
-[ "$1" = "amd64" ] && TARGET_ARCH_PROOT=x86_64
-[ "$1" = "i386" ] && TARGET_ARCH_PROOT=x86
-[ "$1" = "armhf" ] && TARGET_ARCH_PROOT=arm
+
+. lib/shared-detect-host-arch.sh
+
+TARGET_ARCH_DEB=$1
+
+. lib/shared-detect-guest-arch.sh
+
 [ -z ${TARGET_ARCH_PROOT} ] && echo "Cannot build for arch $1" && exit 1
 
+
+for ARCH_PROOT in x86 x86_64 arm ; do
+    STATIC_PROOT=http://static.proot.me/proot-${ARCH_PROOT}
+    [ -f proot-${ARCH_PROOT} ]||(echo Getting static proot ${STATIC_PROOT} ...&&wget "${STATIC_PROOT}" -qO proot-${ARCH_PROOT})
+    [ -x proot-${ARCH_PROOT} ]||chmod +x proot-${ARCH_PROOT}
+done
+
 STATIC_PROOT=http://static.proot.me/proot-${HOST_ARCH_PROOT}
-[ -f proot-${HOST_ARCH_PROOT} ]||(echo Getting static proot ${STATIC_PROOT} ...&&wget "${STATIC_PROOT}" -qO proot-${HOST_ARCH_PROOT})
-[ -x proot-${HOST_ARCH_PROOT} ]||chmod +x proot-${HOST_ARCH_PROOT}
 
 
 echo "Detected host arch ${HOST_ARCH_DEB} (proot-${HOST_ARCH_PROOT})"
@@ -43,11 +43,7 @@ echo "Building for arch $1 (proot-${TARGET_ARCH_PROOT})"
 mkdir debootstrap
 mkdir -p build/debootstrap
 
-# If not ARM get ubuntu cdebootstrap (so we can build ubuntu bootstrap otherwise go debian)
-[ "${HOST_ARCH_DEB}" = "armhf" ]|| \
-    STATIC_CDEBOOTSTRAP_PACKAGE=http://nl.archive.ubuntu.com/ubuntu/pool/universe/c/cdebootstrap/$(wget -qO - "http://nl.archive.ubuntu.com/ubuntu/pool/universe/c/cdebootstrap/?C=M;O=D"|grep ${HOST_ARCH_DEB}|grep static|head -1|cut -d\" -f8)
-[ -z ${STATIC_CDEBOOTSTRAP_PACKAGE} ] && \
-    STATIC_CDEBOOTSTRAP_PACKAGE=http://http.debian.net/debian/pool/main/c/cdebootstrap/$(wget -qO - "http://mirror.as35701.net/debian/pool/main/c/cdebootstrap/?C=M;O=D" |grep ${HOST_ARCH_DEB}|grep static|head -1|cut -d\" -f8)
+STATIC_CDEBOOTSTRAP_PACKAGE=http://nl.archive.ubuntu.com/ubuntu/pool/universe/c/cdebootstrap/$(wget -qO - "http://nl.archive.ubuntu.com/ubuntu/pool/universe/c/cdebootstrap/?C=M;O=D"|grep ${HOST_ARCH_DEB}|grep static|head -1|cut -d\" -f8)
 
 echo "Getting static debootstrap ${STATIC_CDEBOOTSTRAP_PACKAGE} ..."
 wget "${STATIC_CDEBOOTSTRAP_PACKAGE}" -q -O debootstrap/debootstrap.deb
@@ -101,20 +97,31 @@ echo "Building a new ${FINAL_NAME} container installer ... "
 # TODO cdebootstrap still requires root because proot can't handle the unshare call ... to investigate
 # NOTE : that's why host arch proot is left here actually, target : get rid of that last sudo, even for the builder
 
-sudo build/debootstrap/cdebootstrap --include=initscripts --arch=$1 --flavour=minimal \
-  -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
-  -c lib/config-${DISTRO} \
-  $2 build ${DISTRO_MIRROR}
+if [ "${TARGET_ARCH_DEB}" = "${HOST_ARCH_DEB}" ] ; then
+    BUID_TYPE=SAME
+    sudo build/debootstrap/cdebootstrap --include=initscripts,dialog --arch=$1 --flavour=minimal \
+      -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
+      -c lib/config-${DISTRO} \
+      $2 build ${DISTRO_MIRROR}
+    touch ./.bootstraped
+else
+    BUILD_TYPE=FOREIGN
+    sudo build/debootstrap/cdebootstrap --include=initscripts,dialog --foreign --arch=$1 --flavour=minimal \
+      -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
+      -c lib/config-${DISTRO} \
+      $2 build ${DISTRO_MIRROR}
+fi
 
 # till we can use proot to cdebootstrap we need to reset rootfs to the current uid/gid
 echo "Resetting uid/gid to building user ..."
 sudo chown --reference=${HOME} build -R
-
 echo "Installing proot and start scripts into container ..."
-wget "http://static.proot.me/proot-${TARGET_ARCH_PROOT}" -qO build/proot
-chmod +x build/proot
+cp proot-* build/
+chmod +x build/proot-*
 cp lib/start-container build
+cp -R lib/shared-* build/lib/
 [ -x post-build.sh ] && . ./post-build.sh
+echo "export ARCH=${TARGET_ARCH_DEB}" >> build/etc/environment
 echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}
 tar cz build --exclude='dev' --exclude='proc' --exclude='sys'|base64 >> ${FINAL_NAME}
