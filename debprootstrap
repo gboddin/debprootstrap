@@ -94,33 +94,33 @@ fi
 
 echo "Building a new ${FINAL_NAME} container installer ... "
 
-# TODO cdebootstrap still requires root because proot can't handle the unshare call ... to investigate
-# NOTE : that's why host arch proot is left here actually, target : get rid of that last sudo, even for the builder
+./proot-${HOST_ARCH_PROOT} -0 build/debootstrap/cdebootstrap --include=initscripts,dialog --foreign --arch=$1 --flavour=minimal \
+      -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
+      -c lib/config-${DISTRO} \
+      $2 build ${DISTRO_MIRROR}
+
+cp lib/second-stage build/sbin/second-stage
+chmod +x build/sbin/second-stage
+[ -f build/var/cache/bootstrap/cdebootstrap-helper-makedev.deb ] && rm  build/var/cache/bootstrap/cdebootstrap-helper-makedev.deb
 
 if [ "${TARGET_ARCH_DEB}" = "${HOST_ARCH_DEB}" ] ; then
-    BUID_TYPE=SAME
-    sudo build/debootstrap/cdebootstrap --include=initscripts,dialog --arch=$1 --flavour=minimal \
-      -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
-      -c lib/config-${DISTRO} \
-      $2 build ${DISTRO_MIRROR}
-    touch ./.bootstraped
+    PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -0 -S build /sbin/second-stage
 else
-    BUILD_TYPE=FOREIGN
-    sudo build/debootstrap/cdebootstrap --include=initscripts,dialog --foreign --arch=$1 --flavour=minimal \
-      -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
-      -c lib/config-${DISTRO} \
-      $2 build ${DISTRO_MIRROR}
+    PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -0 -q qemu-${TARGET_ARCH_QEMU} -S build /sbin/second-stage
 fi
 
 # till we can use proot to cdebootstrap we need to reset rootfs to the current uid/gid
 echo "Resetting uid/gid to building user ..."
 sudo chown --reference=${HOME} build -R
 echo "Installing proot and start scripts into container ..."
-cp proot-* build/
-chmod +x build/proot-*
-cp lib/start-container build
-cp -R lib/shared-* build/lib/
+cp -R lib/guest-tools build/lib
+cp proot-${TARGET_ARCH_PROOT} build/lib/guest-tools/proot
+chmod +x build/lib/guest-tools/proot
+cp lib/manage build/manage
+
+# post hooks
 [ -x post-build.sh ] && . ./post-build.sh
+
 echo "export ARCH=${TARGET_ARCH_DEB}" >> build/etc/environment
 echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}

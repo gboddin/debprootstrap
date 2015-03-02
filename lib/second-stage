@@ -1,0 +1,3 @@
+#!/bin/bash
+DEBCONF_FRONTEND=noninteractive dpkg --force-depends -Ei /var/cache/bootstrap/*.deb
+rm /var/cache/bootstrap/*deb

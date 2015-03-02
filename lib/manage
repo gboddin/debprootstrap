@@ -1,0 +1,20 @@
+#!/bin/bash
+#!/bin/bash
+CONTAINER_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd ${CONTAINER_PATH}
+. lib/guest-tools/debproot.functions
+PROOT=lib/guest-tools/proot
+case $1 in
+  user)
+    shift
+    $PROOT -R ${CONTAINER_PATH} $@
+  ;;
+  admin)
+    shift
+    HOME=/root $PROOT -S ${CONTAINER_PATH} -0 $@
+  ;;
+  *)
+  echo "Not implemented"
+  ;;
+esac
+

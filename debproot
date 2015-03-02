@@ -1,0 +1,26 @@
+#!/bin/bash
+MY_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+[ -z ${DEPROOT_CACHE} ] && DEPROOT_CACHE=~/.debproot-cache
+. ${MY_DIR}/lib/debproot.functions
+[ -z $1 ] && display_help && exit 1
+[ ! -f debproot.cfg ] && echo "No debproot.cfg, can't start container." && echo "Check http://debproot.siwhine.net for available pre-conf" && exit 1
+. debproot.cfg
+[ ! -d ${DEPROOT_CACHE} ] && mkdir ${DEPROOT_CACHE}
+case $1 in
+  download)
+    [ -x debproot.container/manage ] && echo "Container already installed" && exit 1
+    BUNDLE=${DEPROOT_CACHE}/${DISTRO}-${SUITE}-${ARCH}.bundle
+    update_debproot_bundle ${DISTRO} ${SUITE} ${ARCH} ${BUNDLE}
+    if [ $? -gt 0 ]; then
+        echo "Couldn't download http://debproot.siwhine.net/bundles/${DISTRO}-${SUITE}-${ARCH}-latest.bundle"
+        exit 1
+    fi
+    $BUNDLE debproot.container
+  ;;
+  up)
+    [ ! -x debproot.container/manage ] && echo "Container not installed" && exit 1
+    ;;
+  *)
+    echo "Not implemented yet"
+    ;;
+esac
