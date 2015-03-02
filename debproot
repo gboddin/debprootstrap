@@ -17,8 +17,13 @@ case $1 in
     fi
     $BUNDLE debproot.container
   ;;
-  up)
+  salt)
     [ ! -x debproot.container/manage ] && echo "Container not installed" && exit 1
+    if ! debproot.container/manage user dpkg -l|grep -q salt-common ; then
+        wget -O debproot.container/lib/guest-tools/saltstack-install.sh https://bootstrap.saltstack.com
+        chmod +x debproot.container/lib/guest-tools/saltstack-install.sh
+        debproot.container/manage admin /lib/guest-tools/saltstack-install.sh
+    fi
     ;;
   *)
     echo "Not implemented yet"

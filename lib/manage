@@ -11,7 +11,7 @@ case $1 in
   ;;
   admin)
     shift
-    HOME=/root $PROOT -S ${CONTAINER_PATH} -0 $@
+    HOME=/root PATH=/bin:/sbin:/usr/sbin:/sbin $PROOT -S ${CONTAINER_PATH} -0 $@
   ;;
   *)
   echo "Not implemented"
