@@ -5,5 +5,4 @@ build.tar.gz
 proot-*
 *.bundle
 config.cfg
-post-build.sh
 hooks
