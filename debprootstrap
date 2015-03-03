@@ -94,7 +94,7 @@ fi
 
 echo "Building a new ${FINAL_NAME} container installer ... "
 
-./proot-${HOST_ARCH_PROOT} -0 build/debootstrap/cdebootstrap --include=initscripts,dialog --foreign --arch=$1 --flavour=minimal \
+./proot-${HOST_ARCH_PROOT} -0 build/debootstrap/cdebootstrap --include=initscripts,dialog,sysvinit-core --exclude=systemd --foreign --arch=$1 --flavour=minimal \
       -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
       -c lib/config-${DISTRO} \
       $2 build ${DISTRO_MIRROR}
