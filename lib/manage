@@ -11,7 +11,7 @@ case $1 in
   ;;
   admin)
     shift
-    HOME=/root PATH=/bin:/sbin:/usr/sbin:/sbin $PROOT -S ${CONTAINER_PATH} -0 $@
+    HOME=/root PATH=/bin:/sbin:/usr/sbin:/usr/bin $PROOT -S ${CONTAINER_PATH} -0 $@
   ;;
   saltstrap)
     [ -d ${CONTAINER_PATH}/srv/salt ] && echo "Already saltstraped" && exit 1
