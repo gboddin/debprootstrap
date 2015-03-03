@@ -10,6 +10,8 @@ Prebuilt container
 ------------------
 You can download prebuilt containers at http://debproot.siwhine.net/bundles/
 
+There's also the debproot bundle/container manager at https://github.com/gboddin/debproot
+
 Supported container
 -------------------
 - debian : wheezy, jessie, sid
