@@ -1,0 +1,14 @@
+#!/bin/bash
+display_help_manage () {
+    echo "Usage : $0 <action> ... <options>"
+    echo
+    echo " Modes :"
+    echo
+    echo " user <command>  : Run container as user and start <command> (run contained app with shared homedir)"
+    echo " admin <command> : Run container as admin and start <command> (install packages inside the container)"
+    echo
+}
+install_salt () {
+    curl -L https://bootstrap.saltstack.com | sh -s -- git develop
+    git clone ${RECIPE_URI} /srv/salt
+}
