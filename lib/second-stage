@@ -1,12 +1,15 @@
 #!/bin/bash
-# Fuck off base-files ... : another ubuntu bug fixed by force ...
+
+#remove makedev from package to install because we dont need to makedev ;)
+rm /var/cache/bootstrap/makedev*deb
+
 DEBIAN_FRONTEND="noninteractive" dpkg --force-confdef --force-depends -Ei /var/cache/bootstrap/*.deb
 
 # now post dpkg bug fixing :
 
 # disable chfn bugs
 cat /dev/null > /usr/bin/chfn
-# base-files is left misconfigured sometimes FORCE clean package tree by bypassing buggy postinst (trusty ?) :
+# base-files is left misconfigured sometimes FORCE clean package tree by bypassing buggy postinst :
 [ -f /var/lib/dpkg/info/base-files.postinst ] && \
     echo "Fixing base-files bug now ..." && \
     rm /var/lib/dpkg/info/base-files.postinst
