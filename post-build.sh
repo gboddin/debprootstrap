@@ -6,7 +6,7 @@ deb http://ftp.debian.org/debian/  SUITE-updates main contrib non-free
 deb http://security.debian.org/  SUITE/updates main contrib non-free
 EOF
 
-[ "${DISTRO}" = "ubuntu" ] && sed "s/SUITE/${SUITE}/g"   > build/etc/apt/sources.list <<"EOF"
+[ "${DISTRO}" = "ubuntu" ] && sed "s/SUITE/${DISTRO_SUITE}/g"   > build/etc/apt/sources.list <<"EOF"
 #------------------------------------------------------------------------------#
 #                            OFFICIAL UBUNTU REPOS                             #
 #------------------------------------------------------------------------------#
