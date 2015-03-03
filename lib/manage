@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 CONTAINER_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${CONTAINER_PATH}
 . lib/guest-tools/debproot.functions
@@ -7,11 +6,11 @@ PROOT=lib/guest-tools/proot
 case $1 in
   user)
     shift
-    $PROOT -R ${CONTAINER_PATH} $@
+    $PROOT -b /home -b /dev -b /sys -b /proc -b /etc/resolv.conf -b /etc/hostname -r ${CONTAINER_PATH} $@
   ;;
   admin)
     shift
-    HOME=/root PATH=/bin:/sbin:/usr/sbin:/usr/bin $PROOT -S ${CONTAINER_PATH} -0 $@
+    HOME=/root SHELL=/bin/bash PATH=/bin:/sbin:/usr/sbin:/usr/bin $PROOT -w /root -b /etc/resolv.conf -b /etc/hostname -b /dev -b /sys -b /proc -r ${CONTAINER_PATH} -0 $@
   ;;
   saltstrap)
     [ -d ${CONTAINER_PATH}/srv/salt ] && echo "Already saltstraped" && exit 1
