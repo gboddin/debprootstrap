@@ -1,7 +1,19 @@
 #!/bin/bash
 # Fuck off base-files ... : another ubuntu bug fixed by force ...
 DEBIAN_FRONTEND="noninteractive" dpkg --force-confdef --force-depends -Ei /var/cache/bootstrap/*.deb
+
+# now post dpkg bug fixing :
+
+# disable chfn bugs
+cat /dev/null > /usr/bin/chfn
 # base-files is left misconfigured sometimes FORCE clean package tree by bypassing buggy postinst (trusty ?) :
-[ -f /var/lib/dpkg/info/base-files.postinst ] && echo "Fixing base-files bug now ..." &&rm /var/lib/dpkg/info/base-files.postinst && apt-get install -f
+[ -f /var/lib/dpkg/info/base-files.postinst ] && \
+    echo "Fixing base-files bug now ..." && \
+    rm /var/lib/dpkg/info/base-files.postinst
+
+#last force after dpkg bug fixing :
+apt-get install -f
+
+#and clean
 rm /var/cache/bootstrap/*deb
 apt-get clean
