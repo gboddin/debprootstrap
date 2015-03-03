@@ -15,8 +15,9 @@ cat /dev/null > /usr/bin/chfn
     rm /var/lib/dpkg/info/base-files.postinst
 
 #last force after dpkg bug fixing :
-apt-get install -f
+apt-get install -f -y
 
 #and clean
-rm /var/cache/bootstrap/*deb
+rm -Rf /var/cache/bootstrap 
+rm -Rf /debootstrap
 apt-get clean
