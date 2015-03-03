@@ -23,7 +23,7 @@ case $1 in
         chmod +x ${CONTAINER_PATH}/lib/guest-tools/saltstack-install.sh
         ${CONTAINER_PATH}/manage admin /lib/guest-tools/saltstack-install.sh
     fi
-    git clone $2 ${CONTAINER_PATH}/srv/salt
+    git clone $2 ${CONTAINER_PATH}/srv
     ${CONTAINER_PATH}/manage admin salt-call --local state.highstate
     ;;
   saltup)

@@ -1,0 +1,9 @@
+#!/bin/bash
+CONTAINER_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd ${CONTAINER_PATH}
+if [ -f run/supervisord.pid ] && ps aux|grep supervisord|grep -q $(cat run/supervisord.pid); then
+	echo "Already running..."
+else
+	echo "Staring container supervisord ..."
+	HOME=/root PATH=${PATH}:/sbin:/usr/sbin:/usr/local/sbin nohup ./proot -w /root -b /etc/hostname -b /etc/resolv.conf -b /etc/localtime -b /dev -b /sys -b /proc -r ${CONTAINER_PATH} -0 /bin/bash -c "supervisord -c /etc/supervisor/supervisord.conf" 2>> container.err >> container.log &
+fi
