@@ -4,3 +4,4 @@ DEBIAN_FRONTEND="noninteractive" dpkg --force-confdef --force-depends -Ei /var/c
 # base-files is left misconfigured sometimes FORCE clean package tree by bypassing buggy postinst (trusty ?) :
 [ -f /var/lib/dpkg/info/base-files.postinst ] && echo "Fixing base-files bug now ..." &&rm /var/lib/dpkg/info/base-files.postinst && apt-get install -f
 rm /var/cache/bootstrap/*deb
+apt-get clean
