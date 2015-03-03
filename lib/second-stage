@@ -18,5 +18,6 @@ cat /dev/null > /usr/bin/chfn
 apt-get install -f
 
 #and clean
-rm /var/cache/bootstrap/*deb
+rm -Rf /var/cache/bootstrap 
+rm -Rf /debootstrap
 apt-get clean
