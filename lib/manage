@@ -25,6 +25,16 @@ case $1 in
     fi
     git clone $2 ${CONTAINER_PATH}/srv/salt
     ${CONTAINER_PATH}/manage admin salt-call --local state.highstate
+    ;;
+  saltup)
+    if ! ${CONTAINER_PATH}/manage user dpkg -l|grep -q salt-common ; then
+        echo "Salt is not installed, use saltstrap"
+        exit 1
+    fi
+    cd ${CONTAINER_PATH}/srv/salt
+    git pull
+    ${CONTAINER_PATH}/manage admin salt-call --local state.highstate
+    ;;
   *)
   echo "Not implemented"
   ;;
