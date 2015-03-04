@@ -71,8 +71,8 @@ else
 	[ "${2}" = "lucid" ] && echo "Lucid is currently broken and phasing out, not plan for support sorry." && exit 1
 fi
 DISTRO_SUITE=$2
-FINAL_NAME=install-${DISTRO}-$2-$1-$(date +%Y%m%d%H%M).bundle
-
+[ -z $3 ] && FINAL_NAME=install-${DISTRO}-$2-$1-$(date +%Y%m%d%H%M).bundle
+[ ! -z $3 ] && FINAL_NAME=$3
 if [ "${DISTRO}" = "debian" ]; then
 	echo Adding debian keyring from keyring package ...
 	DEBIAN_KEYRING_PACKAGE=http://http.debian.net/debian/pool/main/d/debian-archive-keyring/$(wget "http://mirror.as35701.net/debian/pool/main/d/debian-archive-keyring/?C=M;O=D" -qO -|grep _all\.deb|head -1|cut -d\" -f8)
@@ -120,6 +120,14 @@ cp lib/manage build/manage
 
 # post hooks
 [ -x post-build.sh ] && . ./post-build.sh
+
+# test
+
+if ! build/manage admin apt-get moo ; then
+    echo "BUILD FAILED"
+    exit 1
+fi
+
 echo "export ARCH=${TARGET_ARCH_DEB}" >> build/etc/environment
 echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}

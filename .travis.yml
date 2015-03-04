@@ -1,0 +1,11 @@
+language: c
+script: "./build-all.sh"
+deploy:
+  provider: releases
+  api_key:
+    secure: DBH/AEBlDvcM6Uv5UrDXpzbf+HU0f3tctLoYGC8+dhtfF7Uihu8fZrtT5u2Z6MVEOcxTBI8EBHzvrtiJtkGGQu0yQPUzU89Dgtaa23HBu1RFLq0i5aqTWqmj60XpemBqyJxgUAYQnJubNeeinDBFYIo4IXFfBaM2qBM+9sECEo8=
+  file_glob: true
+  file: "*.bundle"
+  on:
+    repo: gboddin/debprootstrap
+    tags: true
