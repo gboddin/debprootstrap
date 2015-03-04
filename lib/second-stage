@@ -2,6 +2,7 @@
 
 #remove makedev from package to install because we dont need to makedev ;)
 rm /var/cache/bootstrap/makedev*deb
+rm /var/cache/bootstrap/systemd*deb
 
 DEBIAN_FRONTEND="noninteractive" dpkg --force-confdef --force-depends -Ei /var/cache/bootstrap/*.deb
 
