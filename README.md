@@ -58,8 +58,8 @@ And you end-up with a **build-[suite]-[arch]-[date].bundle** installer , now sen
 user@host:~: ./installer-jessie-amd64-201502260200.bundle ~/my-debian-jessie
 Installing in ~/my-debian-jessie ...
 Installation done
-Run ~/my-debian-jessie/start-container to chroot in your new environment
-user@host:~: ~/my-debian-jessie/start-container /bin/bash
+Run ~/my-debian-jessie/manage <user/admin> to chroot in your new environment
+user@host:~: ~/my-debian-jessie/manage admin /bin/bash
 root@container:~# id
 uid=0(root) gid=0(root) groups=0(root)
 root@container:~# apt-get moo
