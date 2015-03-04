@@ -12,30 +12,26 @@ case $1 in
     shift
     HOME=/root SHELL=/bin/bash PATH=/bin:/sbin:/usr/sbin:/usr/bin $PROOT -w /root -b /etc/resolv.conf -b /etc/hostname -b /dev -b /sys -b /proc -r ${CONTAINER_PATH} -0 $@
   ;;
+  daemonize)
+    shift
+    HOME=/root SHELL=/bin/bash PATH=/bin:/sbin:/usr/sbin:/usr/bin nohup ${PROOT} -w /root -b /etc/resolv.conf -b /etc/hostname -b /dev -b /sys -b /proc -r ${CONTAINER_PATH} -0 $@ \
+     > ${CONTAINER_PATH}/daemons.log 2> ${CONTAINER_PATH}/daemons.err &
+    echo $@ started as PID $!
+  ;;
   saltstrap)
-    [ -d ${CONTAINER_PATH}/srv/salt ] && echo "Already saltstraped" && exit 1
-    [ -z $2 ] && echo "Please specify a git Salt tree" && exit 1
+    [ -z $2 ] && [ ! -d ${CONTAINER_PATH}/srv/salt ] && echo "Please specify a git Salt tree" && exit 1
     RECIPE_URI=$2
-    # install salt if not done :
     if ! ${CONTAINER_PATH}/manage user dpkg -l|grep -q salt-common ; then
         wget -O ${CONTAINER_PATH}/lib/guest-tools/saltstack-install.sh https://bootstrap.saltstack.com
         chmod +x ${CONTAINER_PATH}/lib/guest-tools/saltstack-install.sh
-        ${CONTAINER_PATH}/manage admin /lib/guest-tools/saltstack-install.sh
+        ${CONTAINER_PATH}/manage admin /lib/guest-tools/saltstack-install.sh -X
     fi
-    git clone $2 ${CONTAINER_PATH}/srv
-    ${CONTAINER_PATH}/manage admin salt-call --local state.highstate
-    ;;
-  saltup)
-    if ! ${CONTAINER_PATH}/manage user dpkg -l|grep -q salt-common ; then
-        echo "Salt is not installed, use saltstrap"
-        exit 1
-    fi
-    cd ${CONTAINER_PATH}/srv/salt
-    git pull
+    [ ! -d ${CONTAINER_PATH}/srv/salt ] && rm ${CONTAINER_PATH}/srv -Rf && git clone $2 ${CONTAINER_PATH}/srv
+    cd ${CONTAINER_PATH}/srv && git pull
     ${CONTAINER_PATH}/manage admin salt-call --local state.highstate
     ;;
   *)
-  echo "Not implemented"
+  display_help
   ;;
 esac
 
