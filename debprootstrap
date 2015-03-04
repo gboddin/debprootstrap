@@ -120,6 +120,14 @@ cp lib/manage build/manage
 
 # post hooks
 [ -x post-build.sh ] && . ./post-build.sh
+
+# test
+
+if ! build/manage admin apt-get moo ; then
+    echo "BUILD FAILED"
+    exit 1
+fi
+
 echo "export ARCH=${TARGET_ARCH_DEB}" >> build/etc/environment
 echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}

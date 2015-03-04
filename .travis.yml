@@ -1,2 +1,2 @@
 language: c
-script: ./debprootstrap amd64 wheezy
+script: ./build-all.sh
