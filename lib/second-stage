@@ -22,3 +22,5 @@ apt-get install -f -y
 rm -Rf /var/cache/bootstrap 
 rm -Rf /debootstrap
 apt-get clean
+echo "APT::Get::Install-Recommends \"false\";" >> /etc/apt/apt.conf.d/99norecommends.conf
+echo "APT::Get::Install-Suggests \"false\";" >> /etc/apt/apt.conf.d/99norecommends.conf
