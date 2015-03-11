@@ -5,4 +5,4 @@ UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
 # to speedup next builds by caching downloaded package
 # sudo apt-get install apt-cacher-ng -y
 #DEBIAN_MIRROR=http://localhost:3142/http.debian.net/debian
-#DEBIAN_MIRROR=http://localhost:3142/archive.ubuntu.com/ubuntu
+#UBUNTU_MIRROR=http://localhost:3142/archive.ubuntu.com/ubuntu
