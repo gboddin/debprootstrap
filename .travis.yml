@@ -1,5 +1,6 @@
 language: c
 script: "./build-all.sh"
+sudo: false
 deploy:
   provider: releases
   api_key:
