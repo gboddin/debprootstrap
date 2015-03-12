@@ -21,3 +21,4 @@ for arch in ${DEBPROOTSTRAP_TRAVIS_ARCHS}; do
 
 done
 mv build/debprootstrap/*bundle .
+ls -lha *bundle
