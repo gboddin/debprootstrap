@@ -1,6 +1,8 @@
 language: c
+before_install:
+ - sudo apt-get update 
+ - sudo apt-get install qemu-system-arm
 script: ./debprootstrap $D_ARCH $D_SUITE 
-sudo: false
 deploy:
   provider: releases
   api_key:
