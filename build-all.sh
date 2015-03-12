@@ -3,7 +3,7 @@
 echo "Building for archictures   : ${DEBPROOTSTRAP_TRAVIS_ARCHS}"
 echo "Building for distributions : ${DEBPROOTSTRAP_TRAVIS_DISTROS}"
 echo "Debprootstraping build environment ..."
-./debprootstrap i386 testing
+./debprootstrap amd64 sid 
 echo "Preparing build enviornment ..."
 rm *bundle
 rsync -a . build/debprootstrap --exclude build
