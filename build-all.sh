@@ -8,7 +8,7 @@ echo "Preparing build enviornment ..."
 rm *bundle
 rsync -a . build/debprootstrap --exclude build
 ./build/manage admin apt-get update
-./build/manage admin apt-get install qemu
+./build/manage admin apt-get install qemu -y
 version=$(cat version)
 
 for arch in ${DEBPROOTSTRAP_TRAVIS_ARCHS}; do
