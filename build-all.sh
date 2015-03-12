@@ -9,6 +9,7 @@ rm *bundle
 rsync -a . build/debprootstrap --exclude build
 ./build/manage admin apt-get update
 ./build/manage admin apt-get install qemu -y
+./build/manage admin apt-get install xz-utils -y
 version=$(cat version)
 
 for arch in ${DEBPROOTSTRAP_TRAVIS_ARCHS}; do
