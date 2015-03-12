@@ -12,6 +12,14 @@ deploy:
     tags: true
 matrix:
   include:
+    - env: D_ARCH="armhf" D_SUITE="stable"
+    - env: D_ARCH="armhf" D_SUITE="testing"
+    - env: D_ARCH="armhf" D_SUITE="unstable"
+    - env: D_ARCH="armhf" D_SUITE="vivid"
+    - env: D_ARCH="armhf" D_SUITE="utopic"
+    - env: D_ARCH="armhf" D_SUITE="trusty"
+    - env: D_ARCH="armhf" D_SUITE="precise"
+    - env: D_ARCH="armhf" D_SUITE="lucid"
     - env: D_ARCH="amd64" D_SUITE="stable"
     - env: D_ARCH="amd64" D_SUITE="testing"
     - env: D_ARCH="amd64" D_SUITE="unstable"

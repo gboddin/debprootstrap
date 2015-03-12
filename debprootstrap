@@ -86,7 +86,6 @@ else
     ln -sf mawk build/usr/bin/awk
     [ ! "${TARGET_ARCH_PROOT}" = "arm" ] && DISTRO_MIRROR=${UBUNTU_MIRROR}
     [ "${TARGET_ARCH_PROOT}" = "arm" ] && DISTRO_MIRROR=http://ports.ubuntu.com/ubuntu-ports/
-	[ "${2}" = "lucid" ] && echo "Lucid is currently broken and phasing out, not plan for support sorry." && exit 1
 fi
 
 
