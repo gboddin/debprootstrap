@@ -1,5 +1,13 @@
 language: c
-script: "./build-all.sh"
+script: ./debprootstrap $D_ARCH $D_SUITE 
+matrix:
+  include:
+    - env: D_ARCH="amd64"
+    - env: D_ARCH="i386"
+    - env: D_ARCH="armhf"
+    - env: D_SUITE="stable"
+    - env: D_SUITE="testing"
+    - env: D_SUITE="unstable"
 deploy:
   provider: releases
   api_key:
