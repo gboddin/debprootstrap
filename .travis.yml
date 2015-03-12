@@ -2,18 +2,13 @@ language: c
 script: ./debprootstrap $D_ARCH $D_SUITE 
 matrix:
   include:
-    - env: D_ARCH="amd64"
-      env: D_SUITE="stable"
-    - env: D_ARCH="i386"
-      env: D_SUITE="stable"
-    - env: D_ARCH="amd64"
-      env: D_SUITE="testing"
-    - env: D_ARCH="i386"
-      env: D_SUITE="testing"
-    - env: D_ARCH="amd64"
-      env: D_SUITE="unstable"
-    - env: D_ARCH="i386"
-      env: D_SUITE="unstable"
+    - env: D_ARCH="amd64" D_SUITE="stable"
+    - env: D_ARCH="i386" D_SUITE="stable"
+    - env: D_ARCH="amd64" D_SUITE="testing"
+    - env: D_ARCH="i386" D_SUITE="testing"
+    - env: D_ARCH="amd64" D_SUITE="unstable"
+    - env: D_ARCH="i386" D_SUITE="unstable"
+sudo: false
 deploy:
   provider: releases
   api_key:
