@@ -31,4 +31,3 @@ matrix:
     - env: D_ARCH="i386" D_SUITE="sid"
     - env: D_ARCH="i386" D_SUITE="vivid"
     - env: D_ARCH="i386" D_SUITE="utopic"
-    - env: D_ARCH="i386" D_SUITE="precise"
