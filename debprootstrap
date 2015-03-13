@@ -123,12 +123,17 @@ cp lib/manage build/manage
 [ -x post-build.sh ] && . ./post-build.sh
 
 # test
-
-if ! PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -q qemu-${TARGET_ARCH_QEMU} -b /dev -b /sys -b /proc -r build  apt-get moo ; then
+if [ ${TARGET_ARCH_PROOT} = "arm" ] ; then
+  if ! PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -q qemu-${TARGET_ARCH_QEMU} -b /dev -b /sys -b /proc -r build  apt-get moo ; then
     echo "BUILD FAILED"
     exit 1
-fi
+  fi
+elif ! ./build/manage admin apt-get moo ; then
+    echo "BUILD FAILED"
+    exit 1
+  fi
 
+fi
 echo "export ARCH=${TARGET_ARCH_DEB}" >> build/etc/environment
 echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}
