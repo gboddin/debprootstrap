@@ -124,7 +124,7 @@ cp lib/manage build/manage
 
 # test
 
-if ! build/manage admin apt-get moo ; then
+if ! PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -q qemu-${TARGET_ARCH_QEMU} -b /dev -b /sys -b /proc -r build  apt-get moo ; then
     echo "BUILD FAILED"
     exit 1
 fi
