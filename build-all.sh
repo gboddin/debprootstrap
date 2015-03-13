@@ -1,9 +1,7 @@
 #!/bin/bash
-# travis wont build for arm : TODO debprootstrap a build environment :)
-version=$(cat version)
-for arch in amd64 i386; do
-    for distro in wheezy jessie sid; do
-        ./debprootstrap ${arch} ${distro} install-${distro}-${arch}-${version}.bundle || exit 1
+for arch in armhf amd64 i386; do
+    for distro in wheezy jessie sid vivid utopic precise ; do
+	echo "    - env: D_ARCH=\"${arch}\" D_SUITE=\"${distro}\""
     done
 done
-# ubuntu later
+

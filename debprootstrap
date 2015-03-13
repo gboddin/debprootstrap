@@ -5,6 +5,7 @@
 
 UBUNTU_MIRROR=http://archive.ubuntu.com/ubuntu
 DEBIAN_MIRROR=http://http.debian.net/debian
+
 [ -x config.cfg ] && . config.cfg
 MY_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${MY_DIR}
@@ -32,7 +33,7 @@ for ARCH_PROOT in x86 x86_64 arm ; do
 done
 
 STATIC_PROOT=http://static.proot.me/proot-${HOST_ARCH_PROOT}
-
+DISTRO_SUITE=$2
 
 echo "Detected host arch ${HOST_ARCH_DEB} (proot-${HOST_ARCH_PROOT})"
 echo "Building for arch $1 (proot-${TARGET_ARCH_PROOT})"
@@ -55,6 +56,7 @@ CDB_STATIC_TAR=$(ar p debootstrap/debootstrap.deb data.tar.xz|tar JxvC debootstr
 # (static version of debootstrap with support files for various debian/unbutu versions)
 tar -xzf debootstrap/${CDB_STATIC_TAR} -C build/debootstrap
 # now check if we have the requested suite available
+
 if ! cat build/debootstrap/cdebootstrap-support/suites|grep Suite|cut -d\: -f2|sort|grep -q "$2" ; then
 	echo Suite $2 not found, available suites are :
 	cat build/debootstrap/cdebootstrap-support/suites|grep Suite|cut -d\: -f2|sort
@@ -65,15 +67,6 @@ fi
 
 if cat build/debootstrap/cdebootstrap-support/suites|grep "Suite.*$2" -A3|grep Keyring|grep -qv ubuntu; then
 	DISTRO=debian
-else
-	DISTRO=ubuntu
-	[ "${TARGET_ARCH_PROOT}" = "arm" ] && echo "Ubuntu not available on ARM" && exit 1
-	[ "${2}" = "lucid" ] && echo "Lucid is currently broken and phasing out, not plan for support sorry." && exit 1
-fi
-DISTRO_SUITE=$2
-[ -z $3 ] && FINAL_NAME=install-${DISTRO}-$2-$1-$(date +%Y%m%d%H%M).bundle
-[ ! -z $3 ] && FINAL_NAME=$3
-if [ "${DISTRO}" = "debian" ]; then
 	echo Adding debian keyring from keyring package ...
 	DEBIAN_KEYRING_PACKAGE=http://http.debian.net/debian/pool/main/d/debian-archive-keyring/$(wget "http://mirror.as35701.net/debian/pool/main/d/debian-archive-keyring/?C=M;O=D" -qO -|grep _all\.deb|head -1|cut -d\" -f8)
 	wget "$DEBIAN_KEYRING_PACKAGE" -qO debootstrap/debian-keyring.deb
@@ -82,19 +75,27 @@ if [ "${DISTRO}" = "debian" ]; then
 	cp debootstrap/${KEYRING_FILE} build/debootstrap/cdebootstrap-support/debian-archive-keyring.gpg
 	DISTRO_MIRROR=${DEBIAN_MIRROR}
 else
+	DISTRO=ubuntu
     echo Getting ubuntu keyring ...
     #due to a dpkg/cdebootstrap bug, ubuntu is bootstrapped in 2 stages :
     # also they hate cdebootstrap it looks ... even apt source file installation fails ...
-    wget "http://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg" -qO build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg
+    [ ! "${TARGET_ARCH_PROOT}" = "arm" ] && wget "http://archive.ubuntu.com/ubuntu/project/ubuntu-archive-keyring.gpg" -qO build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg
+    [ "${TARGET_ARCH_PROOT}" = "arm" ] && wget "http://ports.ubuntu.com/ubuntu-ports/project/ubuntu-archive-keyring.gpg" -qO build/debootstrap/cdebootstrap-support/ubuntu-archive-keyring.gpg
     #cheating , see https://bugs.launchpad.net/ubuntu/+source/dpkg/+bug/1376590
     mkdir -p build/usr/bin
     ln -sf mawk build/usr/bin/awk
-    DISTRO_MIRROR=${UBUNTU_MIRROR}
+    [ ! "${TARGET_ARCH_PROOT}" = "arm" ] && DISTRO_MIRROR=${UBUNTU_MIRROR}
+    [ "${TARGET_ARCH_PROOT}" = "arm" ] && DISTRO_MIRROR=http://ports.ubuntu.com/ubuntu-ports/
 fi
+
+
+[ -z $3 ] && FINAL_NAME=install-${DISTRO}-$2-$1-$(date +%Y%m%d%H%M).bundle
+[ ! -z $3 ] && FINAL_NAME=$3
+
 
 echo "Building a new ${FINAL_NAME} container installer ... "
 
-./proot-${HOST_ARCH_PROOT} -0 build/debootstrap/cdebootstrap --include=initscripts,dialog,sysvinit-core --exclude=systemd --foreign --arch=$1 --flavour=minimal \
+./proot-${HOST_ARCH_PROOT} -0 build/debootstrap/cdebootstrap --include=initscripts,dialog,sysvinit-core,wget,binutils --exclude=systemd --foreign --arch=$1 --flavour=minimal \
       -k build/debootstrap/cdebootstrap-support/${DISTRO}-archive-keyring.gpg \
       -c lib/config-${DISTRO} \
       $2 build ${DISTRO_MIRROR}
@@ -122,12 +123,15 @@ cp lib/manage build/manage
 [ -x post-build.sh ] && . ./post-build.sh
 
 # test
-
-if ! build/manage admin apt-get moo ; then
+if [ "${TARGET_ARCH_PROOT}" = "arm" ] ; then
+  if ! PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -q qemu-${TARGET_ARCH_QEMU} -b /dev -b /sys -b /proc -r build  apt-get moo ; then
+    echo "BUILD FAILED"
+    exit 1
+  fi
+elif ! ./build/manage admin apt-get moo ; then
     echo "BUILD FAILED"
     exit 1
 fi
-
 echo "export ARCH=${TARGET_ARCH_DEB}" >> build/etc/environment
 echo Build is ready, bundling to ${FINAL_NAME} ...
 cat lib/install-header.sh > ${FINAL_NAME}
