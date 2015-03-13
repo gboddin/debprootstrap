@@ -14,20 +14,5 @@ deploy:
     tags: true
 matrix:
   include:
-    - env: D_ARCH="armhf" D_SUITE="wheezy"
-    - env: D_ARCH="armhf" D_SUITE="jessie"
-    - env: D_ARCH="armhf" D_SUITE="sid"
-    - env: D_ARCH="armhf" D_SUITE="vivid"
-    - env: D_ARCH="armhf" D_SUITE="utopic"
-    - env: D_ARCH="armhf" D_SUITE="precise"
-    - env: D_ARCH="amd64" D_SUITE="wheezy"
-    - env: D_ARCH="amd64" D_SUITE="jessie"
-    - env: D_ARCH="amd64" D_SUITE="sid"
-    - env: D_ARCH="amd64" D_SUITE="vivid"
-    - env: D_ARCH="amd64" D_SUITE="utopic"
-    - env: D_ARCH="amd64" D_SUITE="precise"
-    - env: D_ARCH="i386" D_SUITE="wheezy"
-    - env: D_ARCH="i386" D_SUITE="jessie"
-    - env: D_ARCH="i386" D_SUITE="sid"
-    - env: D_ARCH="i386" D_SUITE="vivid"
-    - env: D_ARCH="i386" D_SUITE="utopic"
+    - env: D_ARCH="amd64" D_SUITE="trusty"
+    - env: D_ARCH="armhf" D_SUITE="trusty"
