@@ -106,9 +106,9 @@ chmod +x build/sbin/second-stage
 
 if [ "${TARGET_ARCH_DEB}" = "${HOST_ARCH_DEB}" ] ; then
     PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -b /dev -b /sys -b /proc -r build /sbin/second-stage
-elif [ "${TARGET_ARCH_DEB}" = "i386" ] && [ "${HOST_ARCH_DEB}" = "amd64" ]; then
+#elif [ "${TARGET_ARCH_DEB}" = "i386" ] && [ "${HOST_ARCH_DEB}" = "amd64" ]; then
     #cheating most distro have elf 32bit support, faster, less buggy than qemu-system-i386
-    PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -b /dev -b /sys -b /proc -r build /sbin/second-stage
+#    PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -b /dev -b /sys -b /proc -r build /sbin/second-stage
 else
     PATH=/bin:/sbin:/usr/bin:/usr/sbin ./proot-${HOST_ARCH_PROOT} -w / -0 -q qemu-${TARGET_ARCH_QEMU} -b /dev -b /sys -b /proc -r build /sbin/second-stage
 fi
