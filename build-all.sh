@@ -4,3 +4,4 @@ for arch in armhf amd64 i386; do
 	echo "    - env: D_ARCH=\"${arch}\" D_SUITE=\"${distro}\""
     done
 done
+
