@@ -1,8 +1,17 @@
 #!/bin/bash
 
+if [ $1 = "debug" ]; then
+    pstree -p
+    sleep 60
+fi
+
+nohup $0 debug &
+
 #remove makedev from package to install because we dont need to makedev ;)
 rm /var/cache/bootstrap/makedev*deb
 rm /var/cache/bootstrap/systemd*deb
+
+
 
 echo Fuck off dbus ...
 rm  /var/cache/bootstrap/*dbus*.deb
