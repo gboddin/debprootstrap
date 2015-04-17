@@ -4,7 +4,7 @@
 if [ "$1" = "debug" ]; then
     echo Debug subprocess triggered
     while /bin/true; do
-        ps aux
+        ps auxwww
         sleep 20
     done
 fi
