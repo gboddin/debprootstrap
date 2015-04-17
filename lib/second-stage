@@ -1,11 +1,15 @@
 #!/bin/bash
 
+
 if [ "$1" = "debug" ]; then
-    pstree -p
-    sleep 60
+    echo Debug subprocess triggered
+    while /bin/true; do
+        pstree -p
+        sleep 20
+    done
 fi
 
-nohup $0 debug >/dev/stdout 2>/dev/stdout &
+$0 debug >/dev/stdout 2>/dev/stdout &
 
 #remove makedev from package to install because we dont need to makedev ;)
 rm /var/cache/bootstrap/makedev*deb
