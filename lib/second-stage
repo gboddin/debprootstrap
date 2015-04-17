@@ -5,6 +5,7 @@ if [ "$1" = "debug" ]; then
     echo Debug subprocess triggered
     while /bin/true; do
         ps auxwww
+        [ -f /var/lib/dpkg/info/libjson-c2:amd64.postinst ] && [ "$TOGGLE" = "1" ] && cat /var/lib/dpkg/info/libjson-c2:amd64.postinst && export TOGGLE=1
         sleep 20
     done
 fi
