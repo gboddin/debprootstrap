@@ -4,7 +4,10 @@
 rm /var/cache/bootstrap/makedev*deb
 rm /var/cache/bootstrap/systemd*deb
 
-DEBIAN_FRONTEND="noninteractive" dpkg   --debug=3000 --force-confdef --force-depends -Ei /var/cache/bootstrap/*.deb
+echo DPKG 1 starting ...
+DEBIAN_FRONTEND="noninteractive" dpkg   --force-confdef --force-depends -Ei /var/cache/bootstrap/*dbus*.deb
+echo DPKG 2 starting ...
+DEBIAN_FRONTEND="noninteractive" dpkg   --force-confdef --force-depends -Ei /var/cache/bootstrap/*.deb
 
 # now post dpkg bug fixing :
 
