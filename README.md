@@ -1,3 +1,5 @@
+#Deprecated
+
 Why
 ---
 Debprootstrap allow the creation of debian/ubuntu container installers for most (any?) linux distributions including tar,gzip and base64  (RHEL,Arch,Debian,Slackware,...)
